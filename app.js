@@ -8,15 +8,43 @@ const optionsEl = document.querySelector(".options");
 const nextQuestionEl = document.querySelector(".next-question");
 
 // Stores API data
-let triviaQuestions = [];
-
 let state = {
   currentQuestionNumber: 1,
   totalQuestions: undefined,
   score: 0,
   currentQuestion: undefined,
   options: [],
+  triviaQuestions: [],
 };
+
+nextQuestionEl.addEventListener("click", () => {
+  state.currentQuestionNumber++;
+
+  generateState();
+
+  renderQuestion();
+
+  console.log(state);
+});
+
+optionsEl.addEventListener("click", (event) => {
+  const userResponse = event.target.innerText;
+
+  state.triviaQuestions = state.triviaQuestions.map((question, index) => {
+    if (index === (state.currentQuestionNumber - 1)) {
+      return {
+        ...question,
+        response: userResponse,
+      };
+    } else {
+      return {
+        ...question
+      }
+    }
+  });
+
+  console.log(state);
+});
 
 function renderQuestion() {
   currentQuestionNumber.innerText = state.currentQuestionNumber;
@@ -27,7 +55,9 @@ function renderQuestion() {
 
   const options = state.options;
 
-  options.map((option) => {
+  optionsEl.innerHTML = "";
+
+  options.map((option, index) => {
     optionsEl.innerHTML += `<button>${option}</button>`;
   });
 }
@@ -38,13 +68,13 @@ async function fetchData() {
 
     let data = await questions.json();
 
-    triviaQuestions = data;
+    state.triviaQuestions = data;
 
-    console.log('API Data', triviaQuestions);
+    console.log("API Data", state.triviaQuestions);
 
-    console.log('Mapped Questions', mapQuestions(triviaQuestions))
+    console.log("Mapped Questions", mapQuestions(state.triviaQuestions));
 
-    generateState(triviaQuestions);
+    generateState();
 
     renderQuestion();
   } catch (error) {
@@ -73,7 +103,7 @@ async function fetchData() {
 // }
 
 /**
- * Not being used by the app. For demonstration purpose only 
+ * Not being used by the app. For demonstration purpose only
  */
 function mapQuestions(questions) {
   return questions.map((question) => {
@@ -84,14 +114,16 @@ function mapQuestions(questions) {
   });
 }
 
-function generateState(triviaQuestions) {
+function generateState() {
   state = {
     ...state,
-    totalQuestions: triviaQuestions.length,
-    currentQuestion: triviaQuestions[state.currentQuestionNumber - 1].question,
+    totalQuestions: state.triviaQuestions.length,
+    currentQuestion:
+      state.triviaQuestions[state.currentQuestionNumber - 1].question,
     options: [
-      ...triviaQuestions[state.currentQuestionNumber - 1].incorrectAnswers,
-      triviaQuestions[state.currentQuestionNumber - 1].correctAnswer,
+      ...state.triviaQuestions[state.currentQuestionNumber - 1]
+        .incorrectAnswers,
+      state.triviaQuestions[state.currentQuestionNumber - 1].correctAnswer,
     ],
   };
 }
